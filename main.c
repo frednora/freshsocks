@@ -1,6 +1,9 @@
+// Grass D8 Freshsock project.
 // Small web server
 // $ gcc main.c -o fs
 
+#include <stdbool.h>
+#include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
@@ -10,6 +13,30 @@
 
 
 #define NODE_PORT  8880
+
+static char buffer[2048];
+
+void dispatch(int fd);
+
+// =========================================
+
+void dispatch(int fd)
+{
+    int r_bytes=0;
+
+    if (fd<=0)
+        return;
+
+    memset(buffer,0,2048);
+
+    r_bytes = (int) read (fd, buffer, 2048);
+    if (r_bytes <= 0)
+        return;
+
+// Print
+    printf ("Data: {%s}\n",buffer);
+}
+
 
 int main( int argc, char** argv)
 {
@@ -45,7 +72,8 @@ int main( int argc, char** argv)
 // Accept
     printf("Listening for connections...\n");
     int newsockfd = -1;
-    for (;;) 
+    //while (TRUE)
+    while (1)
     {
         // Accept incoming connections
         newsockfd = 
@@ -54,13 +82,12 @@ int main( int argc, char** argv)
                 (struct sockaddr *)&serverAddress,
                 (socklen_t *)&host_addrlen);
         
-        if (newsockfd < 0) {
-            perror("webserver (accept)");
-            continue;
+        if (newsockfd > 0)
+        {
+            printf("connection accepted\n");
+            dispatch(newsockfd);
+            close(newsockfd);          
         }
-
-        printf("connection accepted\n");
-        close(newsockfd);
     };
 
     printf("Done\n");

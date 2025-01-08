@@ -11,14 +11,30 @@
 #include <sys/socket.h>
 #include <netinet/in.h>
 
+#include "globals.h"
+
+
 
 #define NODE_PORT  8880
 
 static char buffer[2048];
 
-void dispatch(int fd);
+
+// List of nodes.
+struct sockaddr_in  this_node;
+struct sockaddr_in  target_node;
+
 
 // =========================================
+void ProcessEvent(void);
+void dispatch(int fd);
+// =========================================
+
+
+void ProcessEvent(void)
+{
+    printf("Event\n");
+}
 
 void dispatch(int fd)
 {
@@ -37,14 +53,14 @@ void dispatch(int fd)
     printf ("Data: {%s}\n",buffer);
 }
 
-
 int main( int argc, char** argv)
 {
-    struct sockaddr_in  serverAddress;
-    serverAddress.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
-    serverAddress.sin_port = htons(NODE_PORT);
-    serverAddress.sin_family = AF_INET;
-    size_t host_addrlen = sizeof(serverAddress);
+
+    // The address for this node.
+    this_node.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    this_node.sin_port = htons(NODE_PORT);
+    this_node.sin_family = AF_INET;
+    size_t host_addrlen = sizeof(this_node);
 
     printf("Hello from Freshsocks\n");
 
@@ -56,7 +72,7 @@ int main( int argc, char** argv)
 
 // Bind
 // Bind the socket to the address
-    if ( bind(server_fd, (struct sockaddr *) &serverAddress, host_addrlen ) != 0 ) 
+    if ( bind(server_fd, (struct sockaddr *) &this_node, host_addrlen ) != 0 ) 
     {
         perror("On bind\n");
         goto fail;
@@ -75,11 +91,16 @@ int main( int argc, char** argv)
     //while (TRUE)
     while (1)
     {
+
+        //if (has_event == 1){
+        //    ProcessEvent();
+        //}
+
         // Accept incoming connections
         newsockfd = 
             accept( 
                 server_fd, 
-                (struct sockaddr *)&serverAddress,
+                (struct sockaddr *)&this_node,
                 (socklen_t *)&host_addrlen);
         
         if (newsockfd > 0)

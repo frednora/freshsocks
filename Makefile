@@ -1,7 +1,7 @@
 #!/bin/bash
 
 all:
-	gcc main.c -o fs
+	gcc main.c globals.c -o fs
 clean:
 	rm fs
 
